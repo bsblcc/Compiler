@@ -1,0 +1,79 @@
+function: main
+CFG:
+bb#1
+Quad#2:= tmp
+Quad#3:= Quad#2 &
+Quad#1:= p
+Quad#4:= Quad#1 Quad#3 assign
+Quad#7:= 1
+Quad#5:= p
+Quad#6:= Quad#5 -> a
+Quad#8:= Quad#6 Quad#7 assign
+Quad#11:= 10
+Quad#9:= p
+Quad#10:= Quad#9 -> b
+Quad#12:= Quad#10 Quad#11 assign
+Quad#15:= 1
+Quad#13:= p
+Quad#14:= Quad#13 -> c
+Quad#16:= Quad#14 Quad#15 assign
+egress links:
+goto BB#3 on default
+used vars:
+tmp
+p
+
+
+bb#2
+egress links:
+used vars:
+
+
+bb#3
+Quad#17:= p
+Quad#18:= Quad#17 -> a
+Quad#19:= p
+Quad#20:= Quad#19 -> b
+Quad#21:= Quad#18 Quad#20 !=
+egress links:
+goto BB#4 in condition of Quad#21
+goto BB#5 on default
+used vars:
+p
+
+
+bb#4
+Quad#24:= p
+Quad#25:= Quad#24 -> a
+Quad#26:= p
+Quad#27:= Quad#26 -> c
+Quad#28:= Quad#25 Quad#27 *
+Quad#22:= p
+Quad#23:= Quad#22 -> c
+Quad#29:= Quad#23 Quad#28 assign
+Quad#32:= p
+Quad#33:= Quad#32 -> a
+Quad#34:= 1
+Quad#35:= Quad#33 Quad#34 +
+Quad#30:= p
+Quad#31:= Quad#30 -> a
+Quad#36:= Quad#31 Quad#35 assign
+egress links:
+goto BB#3 on default
+used vars:
+p
+
+
+bb#5
+Quad#37:= p
+Quad#38:= Quad#37 -> c
+Quad#39:= Quad#38 @
+Quad#40:= 0
+egress links:
+goto BB#2 on default
+used vars:
+p
+
+
+entry block: 1
+exit block: 2

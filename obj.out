@@ -1,0 +1,37 @@
+.section	.rodata
+.global	main
+.type	getSum, @function
+.text	
+getSum:
+	pushq	%rbp
+	movq	%rsp, %rbp
+BB1:
+	movl	16(%rbp), %eax
+	addl	20(%rbp), %eax
+	movl	%eax, %eax
+	jmp	BB2
+BB2:
+	leave	
+	ret	
+.type	main, @function
+.text	
+main:
+	pushq	%rbp
+	movq	%rsp, %rbp
+BB4:
+	movl	$1, -176(%rbp)
+	movl	$2, -172(%rbp)
+	movl	$5, %edi
+	movl	-172(%rbp), %eax
+	movl	%eax, -180(%rbp)
+	movl	-176(%rbp), %eax
+	movl	%eax, -184(%rbp)
+	subq	$184, %rsp
+	call	getSum
+	addq	$184, %rsp
+	movl	%eax, -156(%rbp,%edi,16)
+	movl	$0, %eax
+	jmp	BB5
+BB5:
+	leave	
+	ret	

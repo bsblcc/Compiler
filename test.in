@@ -1,0 +1,94 @@
+
+
+
+struct Pair
+{
+	int x;
+	int y;
+};
+
+
+int getDist(struct Pair* a, struct Pair* b)
+{
+	#stab
+	int resX;
+	int resY;
+	resX = (a->x - b->x) * (a->x - b->x);
+	resY = (a->y - b->y) * (a->y - b->y);
+
+
+	return (resX + resY);
+
+}
+
+
+struct Sum
+{
+	int even;
+	int odd;
+};
+
+int main(int argc, char** argv)
+{
+	
+	struct Pair a, b, c, d;
+
+	a.x = 1;
+	a.y = 2;
+	b.x = 3;
+	b.y = 4;
+	c.x = 5;
+	c.y = 6;
+	d.x = 7;
+	d.y = 8;
+	int max;
+	int res1, res2;
+	res1 = getDist(&a, &c);
+	res2 = getDist(&b, &d);
+	if (res1 > res2)
+	{
+		max = res1;
+	}
+	else 
+	{
+		max = res2;
+	}
+	
+
+	struct Sum *sum;
+	int i;
+	i = 1;
+	int total;
+	total = 0;
+	
+	while (i <= 100)
+	{
+		if (i == (i / 2 * 2))
+		{
+			sum->even = sum->even + i;
+		}
+		
+		
+		else
+		{
+			sum->odd = sum->odd + i;
+		}
+		
+		
+		total = total + i;
+		
+		
+		if (total > 123)
+		{
+		 	return 1;
+		}
+		
+		
+	}
+	
+
+
+	return 0;
+}
+
+

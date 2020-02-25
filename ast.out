@@ -1,0 +1,242 @@
+translation unit
+|   function definition
+|   |   type specifier
+|   |   {
+|   |   }
+|   |   function definition declarator
+|   |   {
+|   |     funcName: main
+|   |     type specifier: 
+|   |   }
+|   |   compound statement
+|   |   |   struct declaration
+|   |   |   |   struct variable declaration list
+|   |   |   |   |   variable declaration
+|   |   |   |   |   |   type specifier
+|   |   |   |   |   |   {
+|   |   |   |   |   |   }
+|   |   |   |   |   |   variable declarator list
+|   |   |   |   |   |   |   initial variable declarator
+|   |   |   |   |   |   |   |   variable declarator
+|   |   |   |   |   |   |   |   {
+|   |   |   |   |   |   |   |     varName: a
+|   |   |   |   |   |   |   |     type specifier: 
+|   |   |   |   |   |   |   |   }
+|   |   |   |   |   |   |   initial variable declarator
+|   |   |   |   |   |   |   |   variable declarator
+|   |   |   |   |   |   |   |   {
+|   |   |   |   |   |   |   |     varName: b
+|   |   |   |   |   |   |   |     type specifier: 
+|   |   |   |   |   |   |   |   }
+|   |   |   |   |   |   |   initial variable declarator
+|   |   |   |   |   |   |   |   variable declarator
+|   |   |   |   |   |   |   |   {
+|   |   |   |   |   |   |   |     varName: c
+|   |   |   |   |   |   |   |     type specifier: 
+|   |   |   |   |   |   |   |   }
+|   |   |   variable declaration
+|   |   |   |   type specifier
+|   |   |   |   {
+|   |   |   |   }
+|   |   |   |   variable declarator list
+|   |   |   |   |   initial variable declarator
+|   |   |   |   |   |   variable declarator
+|   |   |   |   |   |   {
+|   |   |   |   |   |     varName: d
+|   |   |   |   |   |     type specifier: 
+|   |   |   |   |   |   }
+|   |   |   variable declaration
+|   |   |   |   type specifier
+|   |   |   |   {
+|   |   |   |   }
+|   |   |   |   variable declarator list
+|   |   |   |   |   initial variable declarator
+|   |   |   |   |   |   variable declarator
+|   |   |   |   |   |   {
+|   |   |   |   |   |     varName: tmp
+|   |   |   |   |   |     type specifier: 
+|   |   |   |   |   |   }
+|   |   |   variable declaration
+|   |   |   |   type specifier
+|   |   |   |   {
+|   |   |   |   }
+|   |   |   |   variable declarator list
+|   |   |   |   |   initial variable declarator
+|   |   |   |   |   |   variable declarator
+|   |   |   |   |   |   {
+|   |   |   |   |   |     varName: p
+|   |   |   |   |   |     type specifier: pointer 
+|   |   |   |   |   |   }
+|   |   |   expression statement
+|   |   |   |   assignment expression
+|   |   |   |   |   primary expression
+|   |   |   |   |   {
+|   |   |   |   |     primary value type: identifier
+|   |   |   |   |     value: p
+|   |   |   |   |   }
+|   |   |   |   |   unary expression
+|   |   |   |   |   {
+|   |   |   |   |     operator: &
+|   |   |   |   |   }
+|   |   |   |   |   |   primary expression
+|   |   |   |   |   |   {
+|   |   |   |   |   |     primary value type: identifier
+|   |   |   |   |   |     value: tmp
+|   |   |   |   |   |   }
+|   |   |   expression statement
+|   |   |   |   assignment expression
+|   |   |   |   |   postfix expression
+|   |   |   |   |   {
+|   |   |   |   |     operator: ->
+|   |   |   |   |   }
+|   |   |   |   |   |   primary expression
+|   |   |   |   |   |   {
+|   |   |   |   |   |     primary value type: identifier
+|   |   |   |   |   |     value: p
+|   |   |   |   |   |   }
+|   |   |   |   |   primary expression
+|   |   |   |   |   {
+|   |   |   |   |     primary value type: integer
+|   |   |   |   |     value: 1
+|   |   |   |   |   }
+|   |   |   expression statement
+|   |   |   |   assignment expression
+|   |   |   |   |   postfix expression
+|   |   |   |   |   {
+|   |   |   |   |     operator: ->
+|   |   |   |   |   }
+|   |   |   |   |   |   primary expression
+|   |   |   |   |   |   {
+|   |   |   |   |   |     primary value type: identifier
+|   |   |   |   |   |     value: p
+|   |   |   |   |   |   }
+|   |   |   |   |   primary expression
+|   |   |   |   |   {
+|   |   |   |   |     primary value type: integer
+|   |   |   |   |     value: 10
+|   |   |   |   |   }
+|   |   |   expression statement
+|   |   |   |   assignment expression
+|   |   |   |   |   postfix expression
+|   |   |   |   |   {
+|   |   |   |   |     operator: ->
+|   |   |   |   |   }
+|   |   |   |   |   |   primary expression
+|   |   |   |   |   |   {
+|   |   |   |   |   |     primary value type: identifier
+|   |   |   |   |   |     value: p
+|   |   |   |   |   |   }
+|   |   |   |   |   primary expression
+|   |   |   |   |   {
+|   |   |   |   |     primary value type: integer
+|   |   |   |   |     value: 1
+|   |   |   |   |   }
+|   |   |   iteration statement
+|   |   |   |   equality expression
+|   |   |   |   {
+|   |   |   |     operator: !=
+|   |   |   |   }
+|   |   |   |   |   postfix expression
+|   |   |   |   |   {
+|   |   |   |   |     operator: ->
+|   |   |   |   |   }
+|   |   |   |   |   |   primary expression
+|   |   |   |   |   |   {
+|   |   |   |   |   |     primary value type: identifier
+|   |   |   |   |   |     value: p
+|   |   |   |   |   |   }
+|   |   |   |   |   postfix expression
+|   |   |   |   |   {
+|   |   |   |   |     operator: ->
+|   |   |   |   |   }
+|   |   |   |   |   |   primary expression
+|   |   |   |   |   |   {
+|   |   |   |   |   |     primary value type: identifier
+|   |   |   |   |   |     value: p
+|   |   |   |   |   |   }
+|   |   |   |   compound statement
+|   |   |   |   |   expression statement
+|   |   |   |   |   |   assignment expression
+|   |   |   |   |   |   |   postfix expression
+|   |   |   |   |   |   |   {
+|   |   |   |   |   |   |     operator: ->
+|   |   |   |   |   |   |   }
+|   |   |   |   |   |   |   |   primary expression
+|   |   |   |   |   |   |   |   {
+|   |   |   |   |   |   |   |     primary value type: identifier
+|   |   |   |   |   |   |   |     value: p
+|   |   |   |   |   |   |   |   }
+|   |   |   |   |   |   |   multiplicative expression
+|   |   |   |   |   |   |   {
+|   |   |   |   |   |   |     operator: *
+|   |   |   |   |   |   |   }
+|   |   |   |   |   |   |   |   postfix expression
+|   |   |   |   |   |   |   |   {
+|   |   |   |   |   |   |   |     operator: ->
+|   |   |   |   |   |   |   |   }
+|   |   |   |   |   |   |   |   |   primary expression
+|   |   |   |   |   |   |   |   |   {
+|   |   |   |   |   |   |   |   |     primary value type: identifier
+|   |   |   |   |   |   |   |   |     value: p
+|   |   |   |   |   |   |   |   |   }
+|   |   |   |   |   |   |   |   postfix expression
+|   |   |   |   |   |   |   |   {
+|   |   |   |   |   |   |   |     operator: ->
+|   |   |   |   |   |   |   |   }
+|   |   |   |   |   |   |   |   |   primary expression
+|   |   |   |   |   |   |   |   |   {
+|   |   |   |   |   |   |   |   |     primary value type: identifier
+|   |   |   |   |   |   |   |   |     value: p
+|   |   |   |   |   |   |   |   |   }
+|   |   |   |   |   expression statement
+|   |   |   |   |   |   assignment expression
+|   |   |   |   |   |   |   postfix expression
+|   |   |   |   |   |   |   {
+|   |   |   |   |   |   |     operator: ->
+|   |   |   |   |   |   |   }
+|   |   |   |   |   |   |   |   primary expression
+|   |   |   |   |   |   |   |   {
+|   |   |   |   |   |   |   |     primary value type: identifier
+|   |   |   |   |   |   |   |     value: p
+|   |   |   |   |   |   |   |   }
+|   |   |   |   |   |   |   additive expression
+|   |   |   |   |   |   |   {
+|   |   |   |   |   |   |     operator: +
+|   |   |   |   |   |   |   }
+|   |   |   |   |   |   |   |   postfix expression
+|   |   |   |   |   |   |   |   {
+|   |   |   |   |   |   |   |     operator: ->
+|   |   |   |   |   |   |   |   }
+|   |   |   |   |   |   |   |   |   primary expression
+|   |   |   |   |   |   |   |   |   {
+|   |   |   |   |   |   |   |   |     primary value type: identifier
+|   |   |   |   |   |   |   |   |     value: p
+|   |   |   |   |   |   |   |   |   }
+|   |   |   |   |   |   |   |   primary expression
+|   |   |   |   |   |   |   |   {
+|   |   |   |   |   |   |   |     primary value type: integer
+|   |   |   |   |   |   |   |     value: 1
+|   |   |   |   |   |   |   |   }
+|   |   |   expression statement
+|   |   |   |   unary expression
+|   |   |   |   {
+|   |   |   |     operator: @
+|   |   |   |   }
+|   |   |   |   |   postfix expression
+|   |   |   |   |   {
+|   |   |   |   |     operator: ->
+|   |   |   |   |   }
+|   |   |   |   |   |   primary expression
+|   |   |   |   |   |   {
+|   |   |   |   |   |     primary value type: identifier
+|   |   |   |   |   |     value: p
+|   |   |   |   |   |   }
+|   |   |   jump statement
+|   |   |   {
+|   |   |     jump type: return
+|   |   |   }
+|   |   |   |   primary expression
+|   |   |   |   {
+|   |   |   |     primary value type: integer
+|   |   |   |     value: 0
+|   |   |   |   }

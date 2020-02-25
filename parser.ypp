@@ -1,0 +1,990 @@
+%{  
+#include <stdio.h>  
+#include <ctype.h>  
+#include <cstring>
+#include <math.h>
+#include "frontEnd.h"
+int yylex(void);
+extern char* yytext;
+int yyerror(char* s);
+
+extern FILE *yyin, *yyout;
+FILE* dout;
+
+
+using namespace std;
+
+
+AST_node* root;
+
+
+
+%}  
+
+%union 
+{
+
+	string* name;
+
+
+	AST_node* AST_type;
+}
+
+
+%token INTEGER_NUMBER
+%token FLOAT_NUMBER CHAR_LITERAL
+%token INT_TYPE FLOAT_TYPE CHAR_TYPE VOID_TYPE
+%token IDENTIFIER
+
+%token STRUCT
+%token IF ELSE WHILE FOR CASE 
+%token CONTINUE BREAK
+%token RETURN
+%token LOGICAL_AND_OP LOGICAL_OR_OP EQ_OP NE_OP LE_OP GE_OP
+%token INC_OP DEC_OP LSHIFT_OP RSHIFT_OP
+%token AR_OP
+%token STRING_LITERAL
+%token STAB
+%start translation_unit
+
+%type <AST_type>  parameter_declaration_list assignment_expression
+%type <name> IDENTIFIER INTEGER_NUMBER FLOAT_NUMBER STRING_LITERAL CHAR_LITERAL
+%type <AST_type> function_definition  function_definition_declarator
+%type <AST_type> direct_function_definition_declarator declaration
+%type <AST_type> parameter_declaration translation_unit external_declaration
+
+%type <AST_type> var_declaration  var_declarator_list block_item_list
+%type <AST_type> init_var_declarator var_declarator block_item
+
+%type <AST_type> type_specifier direct_var_declarator compound_statement
+%type <AST_type> expression_statement selection_statement statement 
+%type <AST_type> iteration_statement
+%type <AST_type> unary_expression  postfix_expression logical_or_expression logical_and_expression inclusive_or_expression exclusive_or_expression and_expression equality_expression relational_expression shift_expression additive_expression multiplicative_expression argument_expression_list
+expression primary_expression jump_statement struct_declaration struct_var_declaration_list
+
+
+
+
+%%  
+  
+translation_unit
+	: external_declaration
+		{
+			$$ = new transUnit_node();
+			$$->insertChild($1);
+
+			root = $$;
+
+			root->height = 0;
+		}
+	| translation_unit external_declaration
+		{
+			$$ = $1;
+			$$->insertChild($2);
+		}
+	;
+
+external_declaration
+	: function_definition
+		{
+			$$ = $1;
+		}
+	| declaration
+		{
+			$$ = $1;
+		}
+	
+	;
+
+struct_declaration
+	: STRUCT IDENTIFIER '{' struct_var_declaration_list '}' ';'
+		{
+			cerr << "do decl" << endl;
+			auto tmp = new structDecl_node();
+			tmp->name = *$2;
+			tmp->insertChild($4);
+			$$ = tmp;
+		}
+	;
+
+struct_var_declaration_list
+	: struct_var_declaration_list var_declaration
+		{
+			cerr << "collecting list" << endl;
+			static_cast<structVarDeclList_node*>($1)->insertChild($2);
+		}
+	| var_declaration
+		{
+			cerr << "vd" << endl;
+			auto tmp = new structVarDeclList_node();
+			tmp->insertChild($1);
+			$$ = tmp;
+		}
+	;
+
+
+primary_expression
+	: IDENTIFIER
+		{
+			auto tmp = new primaryExpr_node();
+			tmp->primaryValue = *$1;
+			tmp->valueType = primaryExpr_node::ID;
+			$$ = tmp;
+		}
+	| INTEGER_NUMBER
+		{
+			auto tmp = new primaryExpr_node();
+			tmp->primaryValue = *$1;
+			tmp->valueType = primaryExpr_node::INT;
+			//tmp->builtInType = builtInType_type::INT;
+			//tmp->assignable = Expression_type::NO;
+			$$ = tmp;
+		}
+	| FLOAT_NUMBER
+		{
+			auto tmp = new primaryExpr_node();
+			tmp->primaryValue = *$1;
+			tmp->valueType = primaryExpr_node::FLOAT;
+			//tmp->builtInType = builtInType_type::FLOAT;
+			//tmp->assignable = Expression::NO;
+			$$ = tmp;
+		}
+	| STRING_LITERAL
+		{
+			auto tmp = new primaryExpr_node();
+			tmp->primaryValue = *$1;
+			tmp->valueType = primaryExpr_node::ID;
+			//tmp->builtInType = builtInType_type::STRING;
+			//tmp->assignable = Expression::NO;
+			$$ = tmp;
+		}
+	| CHAR_LITERAL
+		{
+			auto tmp = new primaryExpr_node();
+			tmp->primaryValue = *$1;
+			tmp->valueType = primaryExpr_node::CHAR;
+			//tmp->builtInType = builtInType_type::CHAR;
+			//tmp->assignable = Expression::NO;
+			$$ = tmp;
+		}
+	| '(' expression ')'
+		{
+			/*$$ = new primaryExpr_node();
+			$$->insertChild($2);*/
+			$$ = $2;
+		}
+	;
+
+
+expression
+	: assignment_expression
+		{
+		/*
+			$$ = new Expression_node();
+			$$->insertChild($1);
+			*/
+			$$ = $1;
+		}
+	| expression ',' assignment_expression
+		{
+			$$ = $1;
+			$$->insertChild($3);
+		}
+	;
+assignment_expression
+	: logical_or_expression
+		{
+			$$ = $1;
+		}
+	| unary_expression '=' assignment_expression
+		{
+			$$ = new assignExpr_node();
+			$$->insertChild($1, $3);
+		}
+	;
+
+
+
+unary_expression
+	: postfix_expression
+		{
+			$$ = $1;
+		}
+	| INC_OP unary_expression
+		{
+
+			$$ = new unaryExpr_node();
+			static_cast<unaryExpr_node*>($$)->expr_operator = unaryExpr_node::INC_OP;
+			$$->insertChild($2);
+		}
+	| DEC_OP unary_expression
+		{
+
+			$$ = new unaryExpr_node();
+			static_cast<unaryExpr_node*>($$)->expr_operator = unaryExpr_node::DEC_OP;
+			$$->insertChild($2);
+		}
+	| '&' unary_expression
+		{
+			$$ = new unaryExpr_node();
+			static_cast<unaryExpr_node*>($$)->expr_operator = unaryExpr_node::REF_OP;
+			$$->insertChild($2);
+		}
+	| '*' unary_expression
+		{
+			$$ = new unaryExpr_node();
+			static_cast<unaryExpr_node*>($$)->expr_operator = unaryExpr_node::IDR_OP;
+			$$->insertChild($2);
+		}
+	| '+' unary_expression
+		{
+			$$ = new unaryExpr_node();
+			static_cast<unaryExpr_node*>($$)->expr_operator = unaryExpr_node::PLUS_OP;
+			$$->insertChild($2);
+		}
+	| '-' unary_expression
+		{
+			$$ = new unaryExpr_node();
+			static_cast<unaryExpr_node*>($$)->expr_operator = unaryExpr_node::MINUS_OP;
+			$$->insertChild($2);
+		}
+	| '~' unary_expression
+		{
+			$$ = new unaryExpr_node();
+			static_cast<unaryExpr_node*>($$)->expr_operator = unaryExpr_node::CMPL_OP;
+			$$->insertChild($2);
+		}
+	| '!' unary_expression
+		{
+			$$ = new unaryExpr_node();
+			static_cast<unaryExpr_node*>($$)->expr_operator = unaryExpr_node::NEG_OP;
+			$$->insertChild($2);
+		}
+	|	'@' unary_expression
+		{
+			$$ = new unaryExpr_node();
+			static_cast<unaryExpr_node*>($$)->expr_operator = unaryExpr_node::PRINT_OP;
+			$$->insertChild($2);
+		}
+	;
+
+
+
+postfix_expression
+	: primary_expression
+		{
+		/*
+			$$ = new postfixExpr_node();
+			static_cast<postfixExpr_node*>($$)->expr_operator = postfixExpr_node::NONE;
+			$$->insertChild($1);
+			*/
+			$$ = $1;
+		}
+	| postfix_expression '[' expression ']'
+		// array
+		{
+			$$ = new postfixExpr_node();
+			$$->insertChild($1, $3);
+			static_cast<postfixExpr_node*>($$)->expr_operator = postfixExpr_node::SUBSCRIPT_OP;
+		}
+	| postfix_expression '(' ')'
+		// function calling
+		{
+			$$ = new postfixExpr_node();
+			$$->insertChild($1);
+			static_cast<postfixExpr_node*>($$)->expr_operator = postfixExpr_node::FUNC_CALL_OP;
+		}
+	| postfix_expression '(' argument_expression_list ')'
+		// function calling
+		{
+			$$ = new postfixExpr_node();
+			$$->insertChild($1, $3);
+			static_cast<postfixExpr_node*>($$)->expr_operator = postfixExpr_node::FUNC_CALL_OP;
+
+		}
+	| postfix_expression '.' IDENTIFIER
+		// access of struct member
+		{
+			$$ = new postfixExpr_node();
+			$$->insertChild($1);
+			static_cast<postfixExpr_node*>($$)->expr_operator = postfixExpr_node::DOT_OP;
+			static_cast<postfixExpr_node*>($$)->memberName = *$3;
+		}
+
+	| postfix_expression AR_OP IDENTIFIER
+		// access of a class member by class pointer.
+		{
+			$$ = new postfixExpr_node();
+			$$->insertChild($1);
+			static_cast<postfixExpr_node*>($$)->expr_operator = postfixExpr_node::AR_OP;
+			static_cast<postfixExpr_node*>($$)->memberName = *$3;
+		}
+	| postfix_expression INC_OP
+		{
+			$$ = new postfixExpr_node();
+			$$->insertChild($1);
+			static_cast<postfixExpr_node*>($$)->expr_operator = postfixExpr_node::INC_OP;
+		}
+	| postfix_expression DEC_OP
+		{
+			$$ = new postfixExpr_node();
+			$$->insertChild($1);
+			static_cast<postfixExpr_node*>($$)->expr_operator = postfixExpr_node::DEC_OP;
+		}
+	;
+
+
+argument_expression_list
+	: assignment_expression
+		{
+			$$ = new argumentExprList_node();
+			$$->insertChild($1);
+		}
+	| argument_expression_list ',' assignment_expression
+		{
+			$$ = $1;
+			$$->insertChild($3);
+		}
+	;
+
+logical_or_expression
+	: logical_and_expression
+		{
+			$$ = $1;
+		}
+	| logical_or_expression LOGICAL_OR_OP logical_and_expression
+		{
+			$$ = new logicalOrExpr_node();
+			$$->insertChild($1, $3);
+		}
+	;
+
+logical_and_expression
+	: inclusive_or_expression
+		{
+			$$ = $1;
+		}
+	| logical_and_expression LOGICAL_AND_OP inclusive_or_expression
+		{
+			$$ = new logicalAndExpr_node();
+			$$->insertChild($1, $3);
+		}
+	;
+inclusive_or_expression
+	: exclusive_or_expression
+		{
+			$$ = $1;
+		}
+	| inclusive_or_expression '|' exclusive_or_expression
+		{
+			$$ = new inclusiveOrExpr_node();
+			$$->insertChild($1, $3);
+		}
+
+exclusive_or_expression
+	: and_expression
+		{
+			$$ = $1;
+		}
+	| exclusive_or_expression '^' and_expression
+		{
+			$$ = new exclusiveOrExpr_node();
+			$$->insertChild($1, $3);
+		}
+	;
+
+and_expression
+	: equality_expression
+		{
+			$$ = $1;
+		}	
+	| and_expression '&' equality_expression
+		{
+			$$ = new andExpr_node();
+			$$->insertChild($1, $3);
+		}
+	;
+
+
+equality_expression
+	: relational_expression
+		{
+			$$ = $1;
+		}
+	| equality_expression EQ_OP relational_expression
+		{
+			$$ = new equalityExpr_node();
+			static_cast<equalityExpr_node*>($$)->expr_operator = equalityExpr_node::EQ_OP;
+			$$->insertChild($1, $3);
+		}
+	| equality_expression NE_OP relational_expression
+		{
+			$$ = new equalityExpr_node();
+			static_cast<equalityExpr_node*>($$)->expr_operator = equalityExpr_node::NE_OP;
+			$$->insertChild($1, $3);
+		}
+	;
+
+relational_expression
+	: shift_expression
+		{
+			$$ = $1;
+		}
+	| relational_expression '<' shift_expression
+		{
+			$$ = new relationalExpr_node();
+			static_cast<relationalExpr_node*>($$)->expr_operator = relationalExpr_node::L_OP;
+			$$->insertChild($1, $3);
+		}
+	| relational_expression '>' shift_expression
+		{
+			$$ = new relationalExpr_node();
+			static_cast<relationalExpr_node*>($$)->expr_operator = relationalExpr_node::G_OP;
+			$$->insertChild($1, $3);
+		}
+	| relational_expression LE_OP shift_expression
+		{
+			$$ = new relationalExpr_node();
+			static_cast<relationalExpr_node*>($$)->expr_operator = relationalExpr_node::LE_OP;
+			$$->insertChild($1, $3);
+		}
+	| relational_expression GE_OP shift_expression
+		{
+			$$ = new relationalExpr_node();
+			static_cast<relationalExpr_node*>($$)->expr_operator = relationalExpr_node::GE_OP;
+			$$->insertChild($1, $3);
+		}
+	;
+
+shift_expression
+	: additive_expression
+		{
+			$$ = $1;
+		}
+	| shift_expression LSHIFT_OP additive_expression
+		{
+			$$ = new shiftExpr_node();
+			static_cast<shiftExpr_node*>($$)->expr_operator = shiftExpr_node::LSHIFT_OP;
+			$$->insertChild($1, $3);
+		}
+	| shift_expression RSHIFT_OP additive_expression
+		{
+			$$ = new shiftExpr_node();
+			static_cast<shiftExpr_node*>($$)->expr_operator = shiftExpr_node::RSHIFT_OP;
+			$$->insertChild($1, $3);
+		}
+	;
+
+additive_expression
+	: multiplicative_expression
+		{
+			$$ = $1;
+		}
+	| additive_expression '+' multiplicative_expression
+		{
+			$$ = new additiveExpr_node();
+			static_cast<additiveExpr_node*>($$)->expr_operator = additiveExpr_node::ADD_OP;
+			$$->insertChild($1, $3);
+		}
+	| additive_expression '-' multiplicative_expression
+		{
+			$$ = new additiveExpr_node();
+			static_cast<additiveExpr_node*>($$)->expr_operator = additiveExpr_node::SUB_OP;
+			$$->insertChild($1, $3);
+		}
+	;
+
+multiplicative_expression
+	: unary_expression
+		{
+			$$ = $1;
+		}
+	| multiplicative_expression '*' unary_expression
+		{
+			$$ = new multiplicativeExpr_node();
+			static_cast<multiplicativeExpr_node*>($$)->expr_operator = multiplicativeExpr_node::MUL_OP;
+			$$->insertChild($1, $3);
+		}
+	| multiplicative_expression '/' unary_expression
+		{
+			$$ = new multiplicativeExpr_node();
+			static_cast<multiplicativeExpr_node*>($$)->expr_operator = multiplicativeExpr_node::DIV_OP;
+			$$->insertChild($1, $3);
+		}
+	;
+
+
+declaration
+	: var_declaration
+		{
+			$$ = $1;
+		}
+	| function_declaration
+		{
+			$$ = new funcDecl_node();
+		}
+	| STAB
+		{
+			$$ = new showStab_node();
+		}
+	| struct_declaration
+		{
+			$$ = $1;
+		}
+	;
+
+
+
+type_specifier
+	: VOID_TYPE
+		{
+			auto tmp = new typeSpec_node();
+			tmp->type = typeSpec_node::BUILTIN;
+			tmp->builtInType = typeSpec_node::VOID_TYPE;
+			$$ = tmp;
+		}
+	| CHAR_TYPE
+		{
+			auto tmp = new typeSpec_node();
+			tmp->type = typeSpec_node::BUILTIN;
+			tmp->builtInType = typeSpec_node::CHAR_TYPE;
+			$$ = tmp;
+		}
+	| INT_TYPE
+		{
+			auto tmp = new typeSpec_node();
+			tmp->type = typeSpec_node::BUILTIN;
+			tmp->builtInType = typeSpec_node::INT_TYPE;
+
+			$$ = tmp;
+		}
+	| FLOAT_TYPE
+		{
+			auto tmp = new typeSpec_node();
+			tmp->type = typeSpec_node::BUILTIN;
+			tmp->builtInType = typeSpec_node::FLOAT_TYPE;
+
+			$$ = tmp;
+		}
+	| STRUCT IDENTIFIER
+		{
+			auto tmp = new typeSpec_node();
+
+			tmp->type = typeSpec_node::STRUCT;
+			tmp->name = $2;
+			$$ = tmp;
+		}
+	;
+
+function_definition
+	:
+
+	 type_specifier function_definition_declarator 
+
+	 compound_statement
+		{
+			$$ = new funcDef_node();
+
+			$$->insertChild($1, $2, $3);
+		}
+	;
+// type: funcSymbol
+function_definition_declarator
+	: '*' function_definition_declarator
+		{
+			$$ = $2;
+			static_cast<funcDefDeclarator_node*>($$)->typeSpecifierList.push_back(*(new pointerSpecifier_type()));
+		}
+
+	| direct_function_definition_declarator
+		{
+			$$ = $1;
+		}
+
+	;
+
+// type: funcSymbol
+direct_function_definition_declarator
+	: IDENTIFIER  '(' parameter_declaration_list ')'
+		{
+			$$ = new funcDefDeclarator_node();
+ 			static_cast<funcDefDeclarator_node*>($$)->funcName = *$1;
+ 			$$->insertChild($3);
+		}
+
+ 	| IDENTIFIER  '('  ')'
+ 		{
+ 			$$ = new funcDefDeclarator_node();
+ 			static_cast<funcDefDeclarator_node*>($$)->funcName = *$1;
+ 		}
+
+	;
+
+
+// type: dataSymbolList
+parameter_declaration_list
+	: parameter_declaration
+		{
+			$$ = new paramDeclList_node();
+			$$->insertChild($1);
+		}
+	| parameter_declaration_list ',' parameter_declaration
+		{
+			$$ = $1;
+			$$->insertChild($3);
+		}
+	;
+// type: dataSymbol
+parameter_declaration
+	: type_specifier init_var_declarator
+		{
+			$$ = new paramDecl_node();
+			$$->insertChild($1, $2);
+		}
+	;
+
+var_declaration
+	: type_specifier var_declarator_list ';'
+		{
+			$$ = new varDecl_node();
+			$$->insertChild($1, $2);
+		}
+	;
+
+
+var_declarator_list
+	: init_var_declarator
+		{
+
+			$$ = new varDeclaratorList_node();
+			$$->insertChild($1);
+
+		}
+	| var_declarator_list ',' init_var_declarator
+		{
+			$$ = $1;
+			$$->insertChild($3);
+		}
+	;
+
+
+
+init_var_declarator
+	: var_declarator '=' assignment_expression
+		{
+			$$ = new initVarDeclarator_node();
+			$$->insertChild($1, $3);
+
+		}
+	| var_declarator
+
+		{
+			$$ = new initVarDeclarator_node();
+			$$->insertChild($1);
+		}
+	;
+
+var_declarator
+	: '*' var_declarator
+		{
+			$$ = $2;
+			static_cast<varDeclarator_node*>($$)->typeSpecifierList.push_back(*(new pointerSpecifier_type()));
+		}
+
+	| direct_var_declarator
+		{
+			$$ = $1;
+		}
+	;
+
+direct_var_declarator
+	: IDENTIFIER
+		{
+			auto tmp = new varDeclarator_node();
+			tmp->varName = *$1;
+			$$ = tmp;
+			//delete $1;
+		}
+	| '(' var_declarator ')'
+		{
+			$$ = $2;
+		}
+	| direct_var_declarator '[' ']'
+		{
+			$$ = $1;
+			static_cast<varDeclarator_node*>($$)->typeSpecifierList.push_back(*(new arraySpecifier_type()));
+			
+		}
+	| direct_var_declarator '[' INTEGER_NUMBER ']'
+		{
+			$$ = $1;
+			int length = atoi($3->c_str());
+			auto ts = (new arraySpecifier_type());
+			ts->length = length;
+			static_cast<varDeclarator_node*>($$)->typeSpecifierList.push_back(*ts);
+			
+		}
+	; 
+
+
+function_declaration
+	:
+	 type_specifier
+	 function_declarator_list ';'
+	;
+
+function_declarator_list
+	: function_declarator
+	| function_declarator_list ',' function_declarator
+	;
+
+function_declarator
+	: '*' direct_function_declarator
+	| direct_function_declarator
+	;
+
+
+
+direct_function_declarator
+	: IDENTIFIER '(' abstract_parameter_list ')'
+	| IDENTIFIER '(' ')'
+	;
+
+
+
+
+abstract_parameter_list
+	: abstract_parameter_declaration
+	| abstract_parameter_list ',' abstract_parameter_declaration
+	;
+
+
+abstract_parameter_declaration
+	: abstract_var_declaration
+	| abstract_function_declaration
+	;
+
+
+abstract_var_declaration
+	: type_specifier abstract_var_declarator '=' assignment_expression
+	| type_specifier abstract_var_declarator
+	;
+
+abstract_var_declarator
+	: '*' abstract_var_declarator
+	| '[' ']'
+	| 
+	;
+
+
+abstract_function_declaration
+	: type_specifier abstract_function_declarator_list ';'
+	;
+
+
+abstract_function_declarator_list
+	: abstract_function_declarator
+	| abstract_function_declarator_list ',' abstract_function_declarator
+	;
+
+abstract_function_declarator
+	: '*' direct_abstract_function_declarator
+	| direct_abstract_function_declarator
+	;
+
+direct_abstract_function_declarator
+	: '(' abstract_parameter_list ')'
+	| '(' ')'
+	;
+
+
+
+
+
+
+
+
+
+/*
+struct_specifer
+	: STRUCT '{' struct_declaration_list '}'
+	| STRUCT IDENTIFIER '{' struct_declaration_list '}'
+	| STRUCT IDENTIFIER
+	;
+
+struct_declaration_list
+	: struct_declaration
+	| struct_declaration_list struct_declaration
+	;
+
+
+
+struct_declaration
+	: type_specifier struct_declarator_list ';'
+	;
+
+struct_declarator_list
+	: declarator
+	| struct_declarator_list ',' declarator
+	;
+*/
+
+statement
+	: compound_statement
+		{
+			
+			$$ = $1;
+		}
+	| expression_statement
+		{
+			$$ = $1;
+		}	
+	| selection_statement
+		{
+			$$ = $1;
+		}
+	| iteration_statement
+		{
+			$$ = $1;
+		}
+	| jump_statement
+		{
+			$$ = $1;
+
+		}
+	;
+
+
+
+compound_statement
+	: '{' '}'
+		{
+			$$ = new compoundStmt_node();
+		}
+	| '{'  block_item_list '}'
+		{
+			$$ = $2;
+		}
+	;
+
+block_item_list
+	: block_item
+		{
+			$$ = new compoundStmt_node();
+			$$->insertChild($1);
+		}
+	| block_item_list block_item
+		{
+			$$ = $1;
+			$$->insertChild($2);
+		}
+	;
+
+block_item
+	: declaration
+		{
+			$$ = $1;
+		}
+	| statement
+		{
+			$$ = $1;
+		}
+	;
+
+expression_statement
+	: ';'
+		{
+			$$ = new expressionStmt_node();
+		}
+	| expression ';'
+		{
+			$$ = new expressionStmt_node();
+			$$->insertChild($1);
+		}
+	;
+
+selection_statement
+	: IF '(' expression ')' statement ELSE statement
+		{
+			$$ = new selectionStmt_node();
+			$$->insertChild($3, $5, $7);
+		}
+	| IF '(' expression ')' statement
+		{
+			$$ = new selectionStmt_node();
+			$$->insertChild($3, $5);
+		}
+	;
+
+iteration_statement
+	: WHILE '(' expression ')' statement
+		{
+			$$ = new iterationStmt_node();
+			$$->insertChild($3, $5);
+		}
+	| FOR '(' expression_statement expression_statement expression ')' statement
+		{
+			$$ = new iterationStmt_node();
+			$$->insertChild($3, $4, $5, $7);
+		}
+	| FOR '(' var_declaration expression_statement expression ')' statement
+		{
+			$$ = new iterationStmt_node();
+			$$->insertChild($3, $4, $5, $7);
+		}
+	;
+
+jump_statement
+	: CONTINUE ';'
+		{
+			$$ = new jumpStmt_node();
+			static_cast<jumpStmt_node*>($$)->jump_type = jumpStmt_node::CONTINUE;
+		}
+	| BREAK ';'
+		{
+			$$ = new jumpStmt_node();
+			static_cast<jumpStmt_node*>($$)->jump_type = jumpStmt_node::BREAK;
+		}
+	| RETURN ';'
+		{
+			$$ = new jumpStmt_node();
+			static_cast<jumpStmt_node*>($$)->jump_type = jumpStmt_node::RETURN;
+		}
+	| RETURN expression ';'
+		{
+			$$ = new jumpStmt_node();
+			static_cast<jumpStmt_node*>($$)->jump_type = jumpStmt_node::RETURN;
+			$$->insertChild($2);
+		}
+	;
+
+
+%%  
+
+int yyerror(char* s) 
+{  
+    fprintf(stderr, "%s\n", s);  
+    return 1;  
+}  
+  
+
+int main(int argc, char* argv[]) 
+{  
+
+	if (argc > 1)
+	{
+		yyin = fopen(argv[1], "r");
+	}
+	dout = fopen("debug_out", "w");
+    yyparse();
+
+    cout << "parse done" << endl;
+    
+    frontEnd fe(root);
+
+    fe.start();
+
+    cout << "all done" << endl;
+
+}  
+  
